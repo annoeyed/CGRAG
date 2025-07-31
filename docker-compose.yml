@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: cgrag-qdrant
+    restart: always
+    ports:
+      - "6333:6333"          # REST API
+      - "6334:6334"          # gRPC (사용 안 해도 됨)
+    volumes:
+      - ./qdrant_storage:/qdrant/storage
+      - ./qdrant_snapshots:/qdrant/snapshots

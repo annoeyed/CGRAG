@@ -1,0 +1,12 @@
+# config/config.yaml
+qdrant:
+  host: "localhost"
+  port: 6333
+  
+security:
+  malware_threshold: 0.8
+  anomaly_threshold: 0.7
+  
+embeddings:
+  model: "all-MiniLM-L6-v2"
+  dimension: 384
