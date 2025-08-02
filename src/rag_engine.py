@@ -93,14 +93,15 @@ class CyberSecurityRAG:
                     collection_type=collection_type,
                     limit=3
                 )
+                # Store results as tuples (result_object, collection_name)
                 for result in results:
-                    result.collection_type = collection_type
-                    all_results.append(result)
-            except:
+                    all_results.append((result, collection_type))
+            except Exception as e:
+                print(f"Error searching collection {collection_type}: {e}")
                 continue
         
-        # Sort by relevance
-        all_results.sort(key=lambda x: x.score, reverse=True)
+        # Sort by relevance (score is in the first element of the tuple)
+        all_results.sort(key=lambda x: x[0].score, reverse=True)
         
         analysis = {
             "query": query,
@@ -109,12 +110,13 @@ class CyberSecurityRAG:
             "findings": []
         }
         
-        for result in all_results[:10]:  # Top 10 only
+        # Process the sorted results
+        for result_item, collection_name in all_results[:10]:  # Top 10 only
             finding = {
-                "relevance": result.score,
-                "category": result.collection_type,
-                "threat_level": result.payload.get("threat_level", "unknown"),
-                "summary": result.payload.get("content", "")[:150] + "..."
+                "relevance": result_item.score,
+                "category": collection_name,
+                "threat_level": result_item.payload.get("threat_level", "unknown"),
+                "summary": result_item.payload.get("content", "")[:150] + "..."
             }
             analysis["findings"].append(finding)
         
