@@ -14,23 +14,23 @@ class SecurityQdrantManager:
         }
         
     def setup_collections(self):
-        """보안 분석용 컬렉션 생성"""
+        """Create collections for security analysis"""
         for collection_name in self.collections.values():
             try:
                 self.client.create_collection(
                     collection_name=collection_name,
                     vectors_config=VectorParams(
-                        size=384,  # sentence-transformers 기본 크기
+                        size=384,  # default size for sentence-transformers
                         distance=Distance.COSINE,
-                        on_disk=True  # 메모리 절약
+                        on_disk=True  # save memory
                     )
                 )
-                print(f"✅ 컬렉션 생성: {collection_name}")
+                print(f"✅ Collection created: {collection_name}")
             except Exception as e:
-                print(f"컬렉션 {collection_name} 이미 존재 또는 오류: {e}")
+                print(f"Collection {collection_name} already exists or error: {e}")
     
     def add_security_data(self, collection_type: str, data: List[Dict]):
-        """보안 데이터 벡터화하여 저장"""
+        """Vectorize and save security data"""
         collection_name = self.collections[collection_type]
         
         points = []
@@ -51,16 +51,16 @@ class SecurityQdrantManager:
             collection_name=collection_name,
             points=points
         )
-        print(f"{len(points)}개 보안 데이터 저장 완료: {collection_name}")
+        print(f"{len(points)} security data points saved: {collection_name}")
     
     def security_search(self, query_vector: List[float], 
                        collection_type: str, 
                        threat_level_filter: str = None,
                        limit: int = 5):
-        """위협 수준 필터링과 함께 보안 검색"""
+        """Perform security search with threat level filtering"""
         collection_name = self.collections[collection_type]
         
-        # 위협 수준 필터 적용
+        # Apply threat level filter
         search_filter = None
         if threat_level_filter:
             search_filter = models.Filter(

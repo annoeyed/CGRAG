@@ -87,3 +87,6 @@ cython_debug/
 # Qdrant storage
 qdrant_storage/
 qdrant_snapshots/
+
+# Data files
+data/
