@@ -22,7 +22,7 @@ def main():
     print("\nStarting security analysis (type 'quit' to exit)")
     while True:
         query = input("\nEnter your security query: ")
-        if query.lower() == 'quit':
+        if query.strip().lower() == 'quit':
             break
             
         # Auto-detect query type
