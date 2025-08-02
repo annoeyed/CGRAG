@@ -84,22 +84,37 @@ def detect_query_type(query: str) -> str:
         return "general"
 
 def print_analysis_result(result: dict):
-    """Print analysis result"""
-    print(f"\n Analysis Result ({result['type']})")
-    print(f"Query: {result['query']}")
+    """Print analysis result in a structured format."""
+    print(f"\n--- Analysis Result ---")
+    print(f"Type: {result.get('type', 'N/A')}")
+    print(f"Query: {result.get('query', 'N/A')}")
     
-    if result['findings']:
-        print(f"\n Found items ({len(result['findings'])}):")
-        for i, finding in enumerate(result['findings'][:5], 1):
-            print(f"  {i}. Relevance: {finding['relevance']:.2%}")
-            print(f"     Threat Level: {finding.get('threat_level', 'unknown')}")
-            print(f"     Content: {finding.get('description', finding.get('summary', ''))}")
-            print()
-    
-    if 'recommendations' in result and result['recommendations']:
-        print("Recommendations:")
-        for rec in result['recommendations']:
+    findings = result.get('findings', [])
+    if findings:
+        print(f"\n[ Found {len(findings)} items ]")
+        for i, finding in enumerate(findings, 1):
+            print(f"\n#{i} | Relevance: {finding.get('relevance', 0):.2%}")
+            
+            # Print details based on what's available
+            if 'category' in finding:
+                print(f"  - Category: {finding['category']}")
+            if 'threat_level' in finding:
+                print(f"  - Threat Level: {finding['threat_level']}")
+            if 'description' in finding:
+                print(f"  - Description: {finding['description']}")
+            if 'summary' in finding:
+                print(f"  - Summary: {finding['summary']}")
+            if 'source' in finding:
+                print(f"  - Source: {finding['source']}")
+    else:
+        print("\n[ No specific findings ]")
+        
+    recommendations = result.get('recommendations', [])
+    if recommendations:
+        print("\n[ Recommendations ]")
+        for rec in recommendations:
             print(f"  • {rec}")
+    print("\n" + "-"*25)
 
 if __name__ == "__main__":
     main()

@@ -14,20 +14,29 @@ class SecurityQdrantManager:
         }
         
     def setup_collections(self):
-        """Create collections for security analysis"""
+        """Create collections for security analysis if they don't already exist."""
+        try:
+            # Get all current collection names
+            collections_response = self.client.get_collections()
+            existing_collection_names = {c.name for c in collections_response.collections}
+        except Exception as e:
+            print(f"Warning: Could not get collections from Qdrant. Assuming they exist. Error: {e}")
+            return
+
         for collection_name in self.collections.values():
-            try:
-                self.client.create_collection(
-                    collection_name=collection_name,
-                    vectors_config=VectorParams(
-                        size=384,  # default size for sentence-transformers
-                        distance=Distance.COSINE,
-                        on_disk=True  # save memory
+            if collection_name not in existing_collection_names:
+                try:
+                    self.client.create_collection(
+                        collection_name=collection_name,
+                        vectors_config=VectorParams(
+                            size=384,  # Default for sentence-transformers
+                            distance=Distance.COSINE,
+                            on_disk=True
+                        ),
                     )
-                )
-                print(f"✅ Collection created: {collection_name}")
-            except Exception as e:
-                print(f"Collection {collection_name} already exists or error: {e}")
+                    print(f"Collection '{collection_name}' created successfully.")
+                except Exception as e:
+                    print(f"Error creating collection '{collection_name}': {e}")
     
     def add_security_data(self, collection_type: str, data: List[Dict]):
         """Vectorize and save security data"""
