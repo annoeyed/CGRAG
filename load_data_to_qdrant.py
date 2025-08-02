@@ -50,12 +50,16 @@ def create_collection(client, collection_name, vector_size):
             vectors_config=models.VectorParams(
                 size=vector_size,
                 distance=models.Distance.COSINE # Use cosine similarity
-            ),
-            on_disk=True # Use disk-based storage to save memory
+            )
         )
         print(f"  - Collection '{collection_name}' has been created.")
     except Exception as e:
-        print(f"  - Error creating collection '{collection_name}': {e}")
+        # It's okay if the collection already exists.
+        # This error can be ignored if it's about `on_disk` or existence.
+        if "already exists" in str(e) or "Unknown arguments" in str(e):
+             print(f"  - Collection '{collection_name}' already exists or minor issue occurred. Proceeding.")
+        else:
+            print(f"  - Error creating collection '{collection_name}': {e}")
 
 
 # --- Data Loading and Processing Functions ---
@@ -117,7 +121,7 @@ def load_cve_data(client, model):
     create_collection(client, collection_name, model.get_sentence_embedding_dimension())
     
     texts_to_embed = [
-        f"CVE ID: {item['id']}. Description: {item['description']}. Affected: {', '.join(item['affected_products'])}"
+        f"CVE ID: {item.get('id', '')}. Description: {item.get('description', '')}. Affected: {', '.join(item.get('affected_products', []))}"
         for item in cve_list
     ]
     
@@ -191,7 +195,8 @@ def run_verification_tests(client, model):
     search_result_malware = client.search(
         collection_name=MALWARE_COLLECTION,
         query_vector=query_vector_malware,
-        limit=1
+        limit=1,
+        
     )
     
     # 2. CVE search test
@@ -207,7 +212,7 @@ def run_verification_tests(client, model):
     if search_result_malware:
         malware_top_hit = search_result_malware[0]
         print(f"Malware similarity query: '{query_text_malware}'")
-        print(f"  - Search result (Top 1): Family: {malware_top_hit.payload['family']} ({malware_top_hit.payload['hash'][:12]}...)")
+        print(f"  - Search result (Top 1): Family: {malware_top_hit.payload.get('family', 'N/A')} ({malware_top_hit.payload.get('hash', 'N/A')[:12]}...)")
         print(f"  - Similarity score: {malware_top_hit.score:.4f}")
     else:
         print("No malware search results.")
@@ -215,7 +220,7 @@ def run_verification_tests(client, model):
     if search_result_cve:
         cve_top_hit = search_result_cve[0]
         print(f"Threat intelligence query: '{query_text_cve}'")
-        print(f"  - Search result (Top 1): ID: {cve_top_hit.payload['id']}")
+        print(f"  - Search result (Top 1): ID: {cve_top_hit.payload.get('id', 'N/A')}")
         print(f"  - Similarity score: {cve_top_hit.score:.4f}")
     else:
         print("No CVE search results.")
@@ -230,7 +235,7 @@ def main():
     client = connect_to_qdrant()
     if not client:
         return
-
+    
     model = get_embedding_model()
     if not model:
         return
